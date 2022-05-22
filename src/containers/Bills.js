@@ -27,13 +27,18 @@ export default class {
     $('#modaleFile').modal('show')
   }
 
+  getSortedBills(bills) {
+    return bills.sort((a, b) => new Date(b.date) - new Date(a.date))
+  }
+
   getBills = () => {
     if (this.store) {
       return this.store
       .bills()
       .list()
       .then(snapshot => {
-        const bills = snapshot
+        //we need to sort snapshot
+        const bills = this.getSortedBills(snapshot)
           .map(doc => {
             try {
               return {

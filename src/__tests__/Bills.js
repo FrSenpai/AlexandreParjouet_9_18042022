@@ -23,6 +23,8 @@ import router from "../app/Router.js";
 import userEvent from "@testing-library/user-event";
 import Bills from "../containers/Bills.js";
 import NewBillUI from "../views/NewBillUI.js";
+import store from "../__mocks__/store.js";
+import fakeStore from "../__mocks__/fakeStore.js";
 
 Object.defineProperty(window, "localStorage", {
   value: localStorageMock,
@@ -33,12 +35,33 @@ window.localStorage.setItem(
     type: "Employee",
   })
 );
-//triger html by routes
+//trigger html by routes
 const onNavigate = (pathname) => {
   document.body.innerHTML = ROUTES({
     pathname
   });
 };
+let billsClass
+let fakeBillsClass
+beforeEach(() => {
+
+  let PREVIOUS_LOCATION = "";
+  billsClass = new Bills({
+    document,
+    localStorage: window.localStorage,
+    onNavigate,
+    PREVIOUS_LOCATION,
+    store
+  });
+
+  fakeBillsClass = new Bills({
+    document,
+    localStorage: window.localStorage,
+    onNavigate,
+    PREVIOUS_LOCATION,
+    store: fakeStore
+  });
+})
 
 describe("Given I am connected as an employee", () => {
   describe("When I am on Bills Page", () => {
@@ -59,6 +82,10 @@ describe("Given I am connected as an employee", () => {
       //we just expect class list includes "active-icon"
       expect(windowIcon.classList.contains("active-icon")).toBeTruthy()
     })
+     test('When we get bills list it should return an object', () => { 
+      expect(fakeBillsClass.getBills()).toEqual(expect.any(Object))
+      expect(billsClass.getBills()).toEqual(expect.any(Object))
+     })
     test("Then bills should be ordered from earliest to latest", () => {
       document.body.innerHTML = BillsUI({
         data: bills
@@ -66,22 +93,18 @@ describe("Given I am connected as an employee", () => {
       const dates = screen.getAllByText(/^(19|20)\d\d[- /.](0[1-9]|1[012])[- /.](0[1-9]|[12][0-9]|3[01])$/i).map(a => a.innerHTML)
       const antiChrono = (a, b) => ((new Date(b.date) - new Date(a.date)))
       const datesSorted = [...dates].sort(antiChrono)
+      const billsSorted = [...billsClass.getSortedBills(bills)].sort(antiChrono)
+      expect(billsClass.getSortedBills(bills)).toEqual(billsSorted)
       expect(dates).toEqual(datesSorted)
     })
     test('When I click on see more icon, I should see img of the bill', () => {
-      const store = jest.fn();
-      let PREVIOUS_LOCATION = "";
-      const bills = new Bills({
-        document,
-        localStorage: window.localStorage,
-        onNavigate,
-        PREVIOUS_LOCATION,
-        store
-      });
+      
       // we generate modal mock
       $.fn.modal = jest.fn();
-      const seeImgIcon = screen.getAllByTestId("icon-eye")
-      const handleClick = jest.fn((e) => {bills.handleClickIconEye(e)});
+      const seeImgIcon = [...screen.getAllByTestId("icon-eye")]
+      const handleClick = jest.fn((e) => {
+        billsClass.handleClickIconEye(e)
+      });
       seeImgIcon.forEach((icon) => {
         icon.addEventListener("click", handleClick(icon))
       })
@@ -91,17 +114,8 @@ describe("Given I am connected as an employee", () => {
       expect(screen.getAllByText("Justificatif")).toBeTruthy();
     })
     test("When I click to add a new bill I should be redirected to new bill url ", () => {
-      const store = jest.fn();
-      let PREVIOUS_LOCATION = "";
-      const bills = new Bills({
-        document,
-        localStorage: window.localStorage,
-        onNavigate,
-        PREVIOUS_LOCATION,
-        store
-      });
       const newBillIcon = screen.getByTestId("btn-new-bill")
-      const handleClick = jest.fn(bills.handleClickNewBill);
+      const handleClick = jest.fn(billsClass.handleClickNewBill);
       newBillIcon.addEventListener("click", handleClick)
       fireEvent.click(newBillIcon)
       expect(handleClick).toHaveBeenCalled();
