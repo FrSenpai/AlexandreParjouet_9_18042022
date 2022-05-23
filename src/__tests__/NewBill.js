@@ -69,7 +69,10 @@ function getFakeFile(format) {
     }
   }
 }
-
+/**
+ * @description update DOM to set many values needed by the new bill form
+ * @param {boolean} needToBeValid determine if it's sending invalid file or not
+ */
 function updateDomToCreateBills(needToBeValid) {
   const type = screen.getByTestId("expense-type")
   type.value = bill.type
@@ -125,7 +128,6 @@ describe("Given I am connected as an employee", () => {
           expect(handleChange).toHaveBeenCalled();
           //do we have got a file with name "test.jpg" ? Please, no !
           expect(submit[0].files.filter((f) => f.name === "test.jpg").length > 0).toBeFalsy()
-
         })
       })
 
@@ -172,8 +174,5 @@ describe("Given I am connected as an employee", () => {
         })
       })
     })
-
-
-
   })
 })
