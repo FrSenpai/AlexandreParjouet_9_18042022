@@ -159,13 +159,14 @@ export default class {
       .bills()
       .list()
       .then(snapshot => {
-        const bills = snapshot
+        let bills = snapshot
         .map(doc => ({
           id: doc.id,
           ...doc,
           date: doc.date,
           status: doc.status
         }))
+        bills = bills.sort((a,b) => new Date(b.date) - new Date(a.date))
         return bills
       })
       .catch(error => {
