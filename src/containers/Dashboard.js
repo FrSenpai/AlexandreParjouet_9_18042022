@@ -98,7 +98,6 @@ export default class {
       this.counter ++
     } else {
       $(`#open-bill${bill.id}`).css({ background: '#0D5AE5' })
-
       $('.dashboard-right-container div').html(`
         <div id="big-billed-icon" data-testid="big-billed-icon"> ${BigBilledIcon} </div>
       `)
@@ -144,13 +143,14 @@ export default class {
         .html("")
       this.counter ++
     }
-
-    bills.forEach(bill => {
+    // bills.forEach(bill => {
+    //   $(`#open-bill${bill.id}`).click((e) => this.handleEditTicket(e, bill, bills))
+    // })
+    //break the immutability
+    filteredBills(bills, getStatus(this.index)).forEach(bill => {
       $(`#open-bill${bill.id}`).click((e) => this.handleEditTicket(e, bill, bills))
     })
-
     return bills
-
   }
 
   getBillsAllUsers = () => {
@@ -159,13 +159,14 @@ export default class {
       .bills()
       .list()
       .then(snapshot => {
-        const bills = snapshot
+        let bills = snapshot
         .map(doc => ({
           id: doc.id,
           ...doc,
           date: doc.date,
           status: doc.status
         }))
+        bills = bills.sort((a,b) => new Date(b.date) - new Date(a.date))
         return bills
       })
       .catch(error => {
